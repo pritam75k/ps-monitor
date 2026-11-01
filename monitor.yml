@@ -32,4 +32,4 @@ jobs:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           DISCORD_PING_ROLE_ID: ${{ secrets.DISCORD_PING_ROLE_ID }}
         # Stop cleanly just before the 6h limit; the next scheduled run takes over.
-        run: timeout 350m python -u combined_monitor.py || [ $? -eq 124 ]
+       run: python -u combined_monitor.py --once --dry-run
