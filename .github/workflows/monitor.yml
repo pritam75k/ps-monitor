@@ -1,0 +1,35 @@
+name: PlayStation voucher monitor
+
+on:
+  workflow_dispatch:        # manual start from the Actions tab
+  schedule:
+    - cron: "0 */6 * * *"   # restart every 6 hours (a job can run at most 6h)
+
+# Never run two monitors at once; a new run waits for the current one to end.
+concurrency:
+  group: voucher-monitor
+  cancel-in-progress: false
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 358
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          python -m playwright install --with-deps chromium
+
+      - name: Run monitor
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DISCORD_PING_ROLE_ID: ${{ secrets.DISCORD_PING_ROLE_ID }}
+        # Stop cleanly just before the 6h limit; the next scheduled run takes over.
+       run: python -u combined_monitor.py --once --dry-run
